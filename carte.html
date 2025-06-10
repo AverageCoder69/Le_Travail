@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Travail - Carte des Emplois (Alpha 0.0.1)</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Marker cluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .controls {
+            padding: 1rem 2rem;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            background: #f1f5f9;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        #map {
+            height: calc(100vh - 200px);
+            width: 100%;
+        }
+
+        .popup-content {
+            min-width: 250px;
+        }
+
+        .popup-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .popup-employer {
+            color: #3b82f6;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .popup-meta {
+            display: grid;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .popup-meta-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .popup-meta-label {
+            color: #64748b;
+        }
+
+        .popup-meta-value {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .popup-btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            flex: 1;
+        }
+
+        .popup-btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .popup-btn-primary:hover {
+            background: #1e40af;
+        }
+
+        .cluster-icon {
+            background: #3b82f6 !important;
+            color: white !important;
+            border-radius: 50% !important;
+            font-weight: 600 !important;
+        }
+
+        .custom-marker {
+            background: #3b82f6;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-marker-1 {
+            width: 25px;
+            height: 25px;
+            font-size: 10px;
+        }
+
+        .custom-marker-few {
+            width: 30px;
+            height: 30px;
+            font-size: 11px;
+            background: #059669;
+        }
+
+        .custom-marker-many {
+            width: 35px;
+            height: 35px;
+            font-size: 12px;
+            background: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            #map {
+                height: calc(100vh - 250px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💼 Le Travail - Carte des Emplois <span style="font-size: 0.6em; opacity: 0.8; background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: normal;">Alpha 0.0.1</span></h1>
+        <div class="nav-buttons">
+            <a href="/" class="btn btn-secondary">📋 Liste des offres</a>
+            <button id="refreshBtn" class="btn btn-secondary" onclick="refreshData()">🔄 Actualiser</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>🔍 Recherche:</label>
+            <input type="text" id="searchInput" placeholder="Ville ou poste..." class="control-input">
+        </div>
+        <div class="control-group">
+            <label>📋 Contrat:</label>
+            <select id="contractFilter" class="control-input">
+                <option value="">Tous</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>💰 Salaire:</label>
+            <select id="salaryFilter" class="control-input">
+                <option value="">Tous</option>
+                <option value="with-salary">Avec salaire</option>
+                <option value="no-salary">Sans salaire</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="stats">
+        <span id="statsText">Chargement de la carte...</span>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Marker cluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/Leaflet.markercluster.js"></script>
+
+    <script>
+        let map;
+        let markersLayer;
+        let allJobs = [];
+        let filteredJobs = [];
+        let cityCoordinates = {};
+
+        // Coordonnées des villes françaises (base étendue)
+        const frenchCities = {
+            // Grandes villes
+            'PARIS': [48.8566, 2.3522], 'Paris': [48.8566, 2.3522],
+            'MARSEILLE': [43.2965, 5.3698], 'Marseille': [43.2965, 5.3698],
+            'LYON': [45.7640, 4.8357], 'Lyon': [45.7640, 4.8357],
+            'TOULOUSE': [43.6047, 1.4442], 'Toulouse': [43.6047, 1.4442],
+            'NICE': [43.7102, 7.2620], 'Nice': [43.7102, 7.2620],
+            'NANTES': [47.2184, -1.5536], 'Nantes': [47.2184, -1.5536],
+            'MONTPELLIER': [43.6110, 3.8767], 'Montpellier': [43.6110, 3.8767],
+            'STRASBOURG': [48.5734, 7.7521], 'Strasbourg': [48.5734, 7.7521],
+            'BORDEAUX': [44.8378, -0.5792], 'Bordeaux': [44.8378, -0.5792],
+            'LILLE': [50.6292, 3.0573], 'Lille': [50.6292, 3.0573],
+            'RENNES': [48.1173, -1.6778], 'Rennes': [48.1173, -1.6778],
+            'REIMS': [49.2583, 4.0317], 'Reims': [49.2583, 4.0317],
+            'NANCY': [48.6921, 6.1844], 'Nancy': [48.6921, 6.1844],
+            'MULHOUSE': [47.7508, 7.3359], 'Mulhouse': [47.7508, 7.3359],
+            'METZ': [49.1193, 6.1757], 'Metz': [49.1193, 6.1757],
+            'ORLEANS': [47.9029, 1.9039], 'Orléans': [47.9029, 1.9039],
+            'DIJON': [47.3220, 5.0415], 'Dijon': [47.3220, 5.0415],
+            'ANGERS': [47.4784, -0.5632], 'Angers': [47.4784, -0.5632],
+            'CAEN': [49.1829, -0.3707], 'Caen': [49.1829, -0.3707],
+            'BREST': [48.3905, -4.4861], 'Brest': [48.3905, -4.4861],
+            'TOURS': [47.3941, 0.6848], 'Tours': [47.3941, 0.6848],
+            'AMIENS': [49.8941, 2.2957], 'Amiens': [49.8941, 2.2957],
+            'ROUEN': [49.4431, 1.0993], 'Rouen': [49.4431, 1.0993],
+            'LIMOGES': [45.8336, 1.2611], 'Limoges': [45.8336, 1.2611],
+            'CLERMONT-FERRAND': [45.7772, 3.0870], 'Clermont-Ferrand': [45.7772, 3.0870],
+            'BESANCON': [47.2380, 6.0243], 'Besançon': [47.2380, 6.0243],
+            'PERPIGNAN': [42.6886, 2.8948], 'Perpignan': [42.6886, 2.8948],
+            'AJACCIO': [41.9196, 8.7389], 'Ajaccio': [41.9196, 8.7389],
+            'BASTIA': [42.7005, 9.4495], 'Bastia': [42.7005, 9.4495],
+            
+            // Région parisienne
+            'BOBIGNY': [48.9077, 2.4530],
+            'CRETEIL': [48.7903, 2.4552], 'CRÉTEIL': [48.7903, 2.4552],
+            'Nanterre': [48.8924, 2.2069], 'NANTERRE': [48.8924, 2.2069],
+            'Montreuil': [48.864, 2.4372], 'MONTREUIL': [48.8641, 2.4372],
+            'Versailles': [48.8014, 2.1301], 'VERSAILLES': [48.8014, 2.1301],
+            'CERGY': [49.0333, 2.0594], 'Cergy': [49.0333, 2.0594],
+            'EVRY': [48.6308, 2.4509], 'Evry': [48.6308, 2.4509],
+            'MELUN': [48.5412, 2.6608],
+            'VITRY SUR SEINE': [48.7873, 2.3975],
+            'Rosny-sous-Bois': [48.8781, 2.4834], 'CHOISY-LE-ROI': [48.7661, 2.4078],
+            'Rosny sous-bois': [48.8781, 2.4834],
+            'CHAMPIGNY SUR MARNE': [48.8138, 2.5104],
+            'Puteaux': [48.8837, 2.2360],
+            'BOULOGNE-BILLANCOURT': [48.8351, 2.2397],
+            'Noisy-le-Grand': [48.8503, 2.4469], 'NOISY LE GRAND': [48.8503, 2.4469],
+            'Châtenay-Malabry': [48.7673, 2.2676],
+            'Gentilly': [48.8154, 2.3435],
+            'SAINT THIBAULT DES VIGNES': [48.8757, 2.6709],
+            'SAINT-THIBAULT-DES-VIGNES': [48.8757, 2.6709],
+            'RUBELLES': [48.5708, 2.6779],
+            'AVON': [48.4140, 2.7265],
+            'COUBERT': [48.6708, 2.7030], 'Coubert': [48.6708, 2.7030],
+            'BOIS LE ROI': [48.4786, 2.6959],
+            'BLANDAINVILLE': [48.7839, 1.6547], 'Blandainville': [48.7839, 1.6547],
+            'Saint-Denis': [48.9362, 2.3574],
+            'Montigny-le-Bretonneux': [48.7787, 2.0374],
+            
+            // Villes manquantes importantes
+            'NIMES': [43.8367, 4.3601], 'Nîmes': [43.8367, 4.3601],
+            'MACON': [46.3063, 4.8281], 'Mâcon': [46.3063, 4.8281],
+            'TOULON': [43.1242, 5.9280], 'Toulon': [43.1242, 5.9280],
+            'GRENOBLE': [45.1885, 5.7245], 'Grenoble': [45.1885, 5.7245],
+            'Saint-Etienne': [45.4397, 4.3872], 'SAINT-ÉTIENNE': [45.4397, 4.3872],
+            'Le Mans': [47.9956, 0.1873], 'LE MANS': [47.9956, 0.1873],
+            'ANNECY': [45.8992, 6.1294], 'Annecy': [45.8992, 6.1294],
+            'CHAMBERY': [45.5646, 5.9178], 'Chambéry': [45.5646, 5.9178],
+            'Valence': [44.9334, 4.8924], 'VALENCE': [44.9334, 4.8924],
+            'Poitiers': [46.5802, 0.3404], 'POITIERS': [46.5802, 0.3404], 'poitiers': [46.5802, 0.3404],
+            'La Roche sur Yon': [46.6707, -1.4268], 'LA ROCHE SUR YON': [46.6707, -1.4268],
+            'Vannes': [47.6573, -2.7574], 'VANNES': [47.6573, -2.7574],
+            'Quimper': [47.9963, -4.1017], 'QUIMPER': [47.9963, -4.1017],
+            'Saint-Nazaire': [47.2861, -2.2118], 'SAINT-NAZAIRE': [47.2861, -2.2118],
+            'Saint Brieuc': [48.5145, -2.7669], 'SAINT-BRIEUC': [48.5145, -2.7669],
+            'LAVAL': [48.0677, -0.7700], 'Laval': [48.0677, -0.7700],
+            'AGEN': [44.2034, 0.6197],
+            'MONTAUBAN': [44.0173, 1.3550],
+            'AUCH': [43.6458, 0.5865],
+            'FOIX': [42.9650, 1.6053],
+            'CARCASSONNE': [43.2130, 2.3491], 'Carcassonne': [43.2130, 2.3491],
+            'AURILLAC': [44.9255, 2.4439],
+            'TULLE': [45.2669, 1.7756], 'Tulle': [45.2669, 1.7756],
+            'Guéret': [46.1701, 1.8714], 'GUÉRET': [46.1701, 1.8714],
+            'PERIGUEUX': [45.1848, 0.7218], 'Périgueux': [45.1848, 0.7218],
+            'RODEZ': [44.3498, 2.5757],
+            'NEVERS': [46.9867, 3.1598],
+            'AUXERRE': [47.7982, 3.5731],
+            'BOURGES': [47.0810, 2.3988],
+            'CHAUMONT': [48.1122, 5.1393], 'Chaumont': [48.1122, 5.1393],
+            'Epinal': [48.1734, 6.4493], 'ÉPINAL': [48.1734, 6.4493],
+            'VESOUL': [47.6205, 6.1540], 'Vesoul': [47.6205, 6.1540],
+            'GAP': [44.5608, 6.0787],
+            'DIGNE LES BAINS': [44.0947, 6.2347], 'DIGNE': [44.0947, 6.2347],
+            'BRIANCON': [44.9005, 6.6432], 'Briançon': [44.9005, 6.6432],
+            'Privas': [44.7355, 4.5997], 'PRIVAS': [44.7355, 4.5997],
+            'ANNONAY': [45.2394, 4.6694],
+            'CARPENTRAS': [44.0551, 5.0479],
+            'VENCE': [43.7227, 7.1127],
+            'VALLAURIS': [43.5819, 7.0545],
+            'Valbonne': [43.6414, 7.0281], 'VALBONNE': [43.6414, 7.0281],
+            'COLLOBRIERES': [43.2389, 6.3089],
+            'BRIGNOLES': [43.4068, 6.0589],
+            'COGOLIN': [43.2542, 6.5365],
+            'LA VALETTE DU VAR': [43.1393, 5.9840],
+            'VILLENEUVE-LOUBET': [43.6555, 7.1286],
+            
+            // Nord/Pas-de-Calais
+            'VENDIN LE VIEIL': [50.4709, 2.8357], 'VENDIN-LE-VIEIL': [50.4709, 2.8357],
+            'CREIL': [49.2609, 2.4758], 'Creil': [49.2609, 2.4758],
+            'LENS': [50.4284, 2.8319],
+            'VALENCIENNES': [50.3593, 3.5234],
+            'ROUBAIX': [50.6942, 3.1746], 'Roubaix': [50.6942, 3.1746],
+            'Villeneuve d\'Ascq': [50.6294, 3.1373], 'VILLENEUVE D\'ASCQ': [50.6294, 3.1373],
+            'MARCQ EN BAROEUL': [50.6723, 3.0969],
+            'HAUBOURDIN': [50.6094, 2.9869],
+            'Arras': [50.2886, 2.7774], 'ARRAS': [50.2886, 2.7774],
+            'BERCK': [50.4063, 1.5965], 'BERCK SUR MER': [50.4063, 1.5965],
+            'LAIGNEVILLE': [49.3110, 2.4626],
+            'BEAUVAIS': [49.4322, 2.0806], 'Beauvais': [49.4322, 2.0806],
+            'ALENCON': [48.4325, 0.0854], 'Alençon': [48.4325, 0.0854],
+            'BAGNOLES DE L\'ORNE': [48.5543, -0.4189],
+            'Evreux': [49.0246, 1.1511], 'ÉVREUX': [49.0246, 1.1511],
+            'VAL DE REUIL': [49.2570, 1.2009],
+            'DREUX': [48.7367, 1.3678], 'Dreux': [48.7367, 1.3678],
+            'Soissons': [49.3817, 3.3236], 'SOISSONS': [49.3817, 3.3236],
+            'MERCIN ET VAUX': [49.4095, 3.2984],
+            'SAINT-QUENTIN': [49.8469, 3.2870],
+            'LE PUY EN VELAY': [45.0445, 3.8834],
+            
+            // Autres villes importantes
+            'NIORT': [46.3239, -0.4594], 'Niort': [46.3239, -0.4594],
+            'BEAUVAIS': [49.4322, 2.0806], 'Beauvais': [49.4322, 2.0806],
+            'CHATEAUROUX': [46.8108, 1.6925], 'Châteauroux': [46.8108, 1.6925],
+            'LAON': [49.5637, 3.6258], 'Laon': [49.5637, 3.6258],
+            'TARBES': [43.2332, 0.0781], 'Tarbes': [43.2332, 0.0781],
+            'CHARTRES': [48.4439, 1.4845], 'Chartres': [48.4439, 1.4845],
+            'VILLEURBANNE': [45.7665, 4.8797], 'Villeurbanne': [45.7665, 4.8797],
+            'Bourg-en-Bresse': [46.2050, 5.2317], 'BOURG-EN-BRESSE': [46.2050, 5.2317],
+            'Concarneau': [47.8738, -3.9178], 'CONCARNEAU': [47.8738, -3.9178],
+            'SAINT HERBLAIN': [47.2086, -1.6506], 'SAINT-HERBLAIN': [47.2086, -1.6506],
+            'BRUGES': [44.8880, -0.6031],
+            'LORMONT': [44.8735, -0.5289],
+            'Rambouillet': [48.6436, 1.8292], 'RAMBOUILLET': [48.6436, 1.8292],
+            'COLMAR': [48.0794, 7.3581], 'Colmar': [48.0794, 7.3581],
+            'HAGUENAU': [48.8155, 7.7895],
+            'SARREGUEMINES': [49.1118, 7.0682], 'Sarreguemines': [49.1118, 7.0682],
+            'SCHILTIGHEIM': [48.6084, 7.7444],
+            'Illkirch': [48.5330, 7.7166], 'ILLKIRCH': [48.5330, 7.7166],
+            'ILLKIRCH - 10 avenue Achille Baumann': [48.5330, 7.7166],
+            'MORSBRONN-LES-BAINS (67)': [48.9306, 7.6975],
+            'GOERSDORF - 67': [48.9972, 7.7333],
+            'NIEDERBRONN - 67': [48.9472, 7.6350],
+            'SAALES': [48.3528, 7.1122],
+            'Charleville-Mézières': [49.7636, 4.7208], 'CHARLEVILLE-MÉZIÈRES': [49.7636, 4.7208],
+            'MONT DE MARSAN': [43.8948, -0.4985],
+            'Castelnau-le-Lez': [43.6329, 3.8967], 'CASTELNAU-LE-LEZ': [43.6329, 3.8967],
+            'BOHARS': [48.4122, -4.5153],
+            'CHANTEPIE (35)': [48.0905, -1.6172],
+            'Saint-Priest-en-Jarez': [45.4706, 4.3780],
+            'Feurs': [45.7439, 4.2250],
+            'Saint Didier au Mont d\'or': [45.8078, 4.8067],
+            'Saint Didier au Mont d\'Or (69)': [45.8078, 4.8067],
+            'FOLCHERAN': [46.8342, 6.4008],
+            'NOIDANS LES VESOUL': [47.6147, 6.1100],
+            'SAINTE CATHERINE': [49.4208, 0.2506],
+            'LA CHAPELLE SAINT MESMIN': [47.8872, 1.8225],
+            'LA CHAPELLE ST MESMIN': [47.8872, 1.8225],
+            'SAINT DOULCHARD': [47.1005, 2.3731],
+            'ST FLORENT SUR CHER': [46.9965, 2.2476],
+            'LE LAMENTIN': [14.6073, -61.0036]
+        };
+
+        // Initialiser la carte
+        function initMap() {
+            map = L.map('map').setView([46.603354, 1.888334], 6); // Centre de la France
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Créer le groupe de clusters
+            markersLayer = L.markerClusterGroup({
+                iconCreateFunction: function(cluster) {
+                    const count = cluster.getChildCount();
+                    return L.divIcon({
+                        html: '<div class="cluster-icon"><span>' + count + '</span></div>',
+                        className: 'marker-cluster',
+                        iconSize: L.point(40, 40)
+                    });
+                }
+            });
+
+            map.addLayer(markersLayer);
+        }
+
+        // Charger les données
+        async function loadJobs() {
+            try {
+                const response = await fetch('/jobs');
+                allJobs = await response.json();
+                filteredJobs = [...allJobs];
+                
+                populateFilters();
+                updateMap();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement:', error);
+                document.getElementById('statsText').textContent = 'Erreur lors du chargement des données';
+            }
+        }
+
+        // Peupler les filtres
+        function populateFilters() {
+            const contracts = [...new Set(allJobs.map(job => job.type_contrat).filter(c => c !== 'NA'))].sort();
+            
+            const contractSelect = document.getElementById('contractFilter');
+            contractSelect.innerHTML = '<option value="">Tous</option>';
+            
+            contracts.forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract;
+                option.textContent = contract;
+                contractSelect.appendChild(option);
+            });
+        }
+
+        // Obtenir les coordonnées d'une ville
+        function getCityCoordinates(cityName) {
+            const normalizedCity = cityName.trim();
+            
+            // Recherche exacte
+            if (frenchCities[normalizedCity]) {
+                return frenchCities[normalizedCity];
+            }
+            
+            // Recherche insensible à la casse
+            const cityLower = normalizedCity.toLowerCase();
+            for (const [city, coords] of Object.entries(frenchCities)) {
+                if (city.toLowerCase() === cityLower) {
+                    return coords;
+                }
+            }
+            
+            // Recherche partielle
+            for (const [city, coords] of Object.entries(frenchCities)) {
+                if (city.toLowerCase().includes(cityLower) || cityLower.includes(city.toLowerCase())) {
+                    return coords;
+                }
+            }
+            
+            return null;
+        }
+
+        // Créer le popup pour un job
+        function createJobPopup(job) {
+            return `
+                <div class="popup-content">
+                    <div class="popup-title">${job.titre}</div>
+                    <div class="popup-employer">${job.employeur}</div>
+                    <div class="popup-meta">
+                        <div class="popup-meta-item">
+                            <span class="popup-meta-label">📍 Lieu:</span>
+                            <span class="popup-meta-value">${job.lieu}</span>
+                        </div>
+                        <div class="popup-meta-item">
+                            <span class="popup-meta-label">📋 Contrat:</span>
+                            <span class="popup-meta-value">${job.type_contrat}</span>
+                        </div>
+                        <div class="popup-meta-item">
+                            <span class="popup-meta-label">💰 Salaire:</span>
+                            <span class="popup-meta-value">${job.salaire !== 'NA' ? job.salaire : 'Non précisé'}</span>
+                        </div>
+                        <div class="popup-meta-item">
+                            <span class="popup-meta-label">🎯 Niveau:</span>
+                            <span class="popup-meta-value">${job.niveau !== 'NA' ? job.niveau : 'Non précisé'}</span>
+                        </div>
+                        <div class="popup-meta-item">
+                            <span class="popup-meta-label">📅 Publié:</span>
+                            <span class="popup-meta-value">${job.date_publication}</span>
+                        </div>
+                        ${job.date_limite !== 'NA' ? `
+                        <div class="popup-meta-item">
+                            <span class="popup-meta-label">⏰ Limite:</span>
+                            <span class="popup-meta-value">${job.date_limite}</span>
+                        </div>` : ''}
+                    </div>
+                    <div class="popup-actions">
+                        <a href="${job.lien}" target="_blank" class="popup-btn popup-btn-primary">Voir l'offre</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Mettre à jour la carte
+        function updateMap() {
+            markersLayer.clearLayers();
+            
+            const cityGroups = {};
+            let locatedJobs = 0;
+            
+            // Grouper les jobs par ville
+            filteredJobs.forEach(job => {
+                if (job.lieu === 'NA') return;
+                
+                const coords = getCityCoordinates(job.lieu);
+                if (!coords) return;
+                
+                locatedJobs++;
+                const cityKey = coords.join(',');
+                
+                if (!cityGroups[cityKey]) {
+                    cityGroups[cityKey] = {
+                        coords: coords,
+                        jobs: [],
+                        city: job.lieu
+                    };
+                }
+                cityGroups[cityKey].jobs.push(job);
+            });
+            
+            // Créer les markers personnalisés
+            Object.values(cityGroups).forEach(group => {
+                const jobCount = group.jobs.length;
+                
+                // Créer l'icône personnalisée selon le nombre d'offres
+                let markerClass = 'custom-marker custom-marker-1';
+                if (jobCount >= 10) {
+                    markerClass = 'custom-marker custom-marker-many';
+                } else if (jobCount >= 3) {
+                    markerClass = 'custom-marker custom-marker-few';
+                }
+                
+                const customIcon = L.divIcon({
+                    html: `<div class="${markerClass}">${jobCount}</div>`,
+                    className: 'custom-div-icon',
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 35]
+                });
+                
+                let popupContent;
+                
+                if (jobCount === 1) {
+                    // Un seul job: affichage détaillé
+                    const job = group.jobs[0];
+                    popupContent = createJobPopup(job);
+                } else {
+                    // Plusieurs jobs: liste avec compteur
+                    popupContent = `
+                        <div class="popup-content">
+                            <div class="popup-title">${jobCount} offre${jobCount > 1 ? 's' : ''} à ${group.city}</div>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${group.jobs.slice(0, 5).map(job => `
+                                    <div style="border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0;">
+                                        <strong>${job.titre}</strong><br>
+                                        <small style="color: #64748b;">${job.employeur} - ${job.type_contrat}</small>
+                                        ${job.salaire !== 'NA' ? `<br><small style="color: #059669; font-weight: 500;">💰 ${job.salaire}</small>` : ''}
+                                        <div style="margin-top: 0.25rem;">
+                                            <a href="${job.lien}" target="_blank" style="color: #3b82f6; text-decoration: none; font-size: 0.8rem;">Voir l'offre →</a>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${jobCount > 5 ? `<div style="text-align: center; padding: 0.5rem; color: #64748b; font-size: 0.8rem;">... et ${jobCount - 5} autre${jobCount - 5 > 1 ? 's' : ''} offre${jobCount - 5 > 1 ? 's' : ''}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                const marker = L.marker(group.coords, {icon: customIcon}).bindPopup(popupContent);
+                markersLayer.addLayer(marker);
+            });
+            
+            updateStats(locatedJobs);
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats(locatedJobs = null) {
+            if (locatedJobs === null) {
+                locatedJobs = filteredJobs.filter(job => {
+                    if (job.lieu === 'NA') return false;
+                    return getCityCoordinates(job.lieu) !== null;
+                }).length;
+            }
+            
+            const totalFiltered = filteredJobs.length;
+            const totalJobs = allJobs.length;
+            
+            document.getElementById('statsText').textContent = 
+                `${totalFiltered} offre${totalFiltered > 1 ? 's' : ''} trouvée${totalFiltered > 1 ? 's' : ''} / ${locatedJobs} géolocalisée${locatedJobs > 1 ? 's' : ''} / ${totalJobs} au total`;
+        }
+
+        // Filtrer les jobs
+        function filterJobs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const contractFilter = document.getElementById('contractFilter').value;
+            const salaryFilter = document.getElementById('salaryFilter').value;
+            
+            filteredJobs = allJobs.filter(job => {
+                const matchesSearch = !searchTerm || 
+                    job.titre.toLowerCase().includes(searchTerm) || 
+                    job.employeur.toLowerCase().includes(searchTerm) ||
+                    job.lieu.toLowerCase().includes(searchTerm);
+                
+                const matchesContract = !contractFilter || job.type_contrat === contractFilter;
+                
+                let matchesSalary = true;
+                if (salaryFilter === 'with-salary') {
+                    matchesSalary = job.salaire !== 'NA';
+                } else if (salaryFilter === 'no-salary') {
+                    matchesSalary = job.salaire === 'NA';
+                }
+                
+                return matchesSearch && matchesContract && matchesSalary;
+            });
+            
+            updateMap();
+        }
+
+        // Actualiser les données
+        async function refreshData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Actualisation...';
+            
+            try {
+                const response = await fetch('/refresh');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    await loadJobs();
+                    btn.innerHTML = '✅ Actualisé !';
+                    setTimeout(() => {
+                        btn.innerHTML = '🔄 Actualiser';
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    btn.innerHTML = '❌ Erreur';
+                    setTimeout(() => {
+                        btn.innerHTML = '🔄 Actualiser';
+                        btn.disabled = false;
+                    }, 3000);
+                }
+            } catch (error) {
+                btn.innerHTML = '❌ Erreur';
+                setTimeout(() => {
+                    btn.innerHTML = '🔄 Actualiser';
+                    btn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterJobs);
+        document.getElementById('contractFilter').addEventListener('change', filterJobs);
+        document.getElementById('salaryFilter').addEventListener('change', filterJobs);
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            loadJobs();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Travail - Interface Interactive (Alpha 0.0.1)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header > div:first-child {
+            text-align: left;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .filters {
+            padding: 2rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filter-input {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            min-width: 200px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .stats {
+            padding: 1rem 2rem;
+            background: #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .jobs-container {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .job-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .job-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+            border-color: #3b82f6;
+        }
+
+        .job-header {
+            margin-bottom: 1rem;
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .job-employer {
+            font-size: 1rem;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .job-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .meta-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+        }
+
+        .job-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .tag-contract {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .tag-level {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .tag-salary {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .job-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .job-dates {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .btn-view {
+            background: #3b82f6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-view:hover {
+            background: #1e40af;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+
+        @media (max-width: 768px) {
+            .jobs-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-input {
+                min-width: auto;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>💼 Le Travail <span style="font-size: 0.5em; opacity: 0.8; background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: normal;">Alpha 0.0.1</span></h1>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="/carte" style="background: rgba(255,255,255,0.2); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 500; border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🗺️ Voir la carte</a>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <input type="text" id="searchInput" placeholder="🔍 Rechercher par titre ou employeur..." class="filter-input">
+                <select id="locationFilter" class="filter-input">
+                    <option value="">📍 Toutes les villes</option>
+                </select>
+                <select id="contractFilter" class="filter-input">
+                    <option value="">📋 Tous les contrats</option>
+                </select>
+                <select id="salaryFilter" class="filter-input">
+                    <option value="">💰 Tous les salaires</option>
+                    <option value="with-salary">Avec salaire indiqué</option>
+                    <option value="no-salary">Sans salaire indiqué</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats">
+            <span id="resultsCount">Chargement...</span>
+            <div>
+                <button id="refreshBtn" onclick="refreshJobs()" style="background: #059669; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; margin-right: 1rem; cursor: pointer;">🔄 Actualiser</button>
+                <span id="lastUpdate"></span>
+            </div>
+        </div>
+
+        <div id="jobsContainer" class="jobs-container">
+            <div class="loading">
+                <h3>Chargement des offres d'emploi...</h3>
+                <p>Veuillez patienter</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allJobs = [];
+        let filteredJobs = [];
+
+        // Charger les données
+        async function loadJobs() {
+            try {
+                const response = await fetch('/jobs');
+                allJobs = await response.json();
+                filteredJobs = [...allJobs];
+                
+                populateFilters();
+                displayJobs();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement:', error);
+                document.getElementById('jobsContainer').innerHTML = `
+                    <div class="no-results">
+                        <h3>❌ Erreur de chargement</h3>
+                        <p>Impossible de charger les offres d'emploi</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Peupler les filtres
+        function populateFilters() {
+            const locations = [...new Set(allJobs.map(job => job.lieu).filter(l => l !== 'NA'))].sort();
+            const contracts = [...new Set(allJobs.map(job => job.type_contrat).filter(c => c !== 'NA'))].sort();
+            
+            const locationSelect = document.getElementById('locationFilter');
+            const contractSelect = document.getElementById('contractFilter');
+            
+            // Sauvegarder les valeurs actuelles
+            const currentLocation = locationSelect.value;
+            const currentContract = contractSelect.value;
+            
+            // Vider les options existantes (garder seulement la première option)
+            locationSelect.innerHTML = '<option value="">📍 Toutes les villes</option>';
+            contractSelect.innerHTML = '<option value="">📋 Tous les contrats</option>';
+            
+            // Ajouter les nouvelles options
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                locationSelect.appendChild(option);
+            });
+            
+            contracts.forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract;
+                option.textContent = contract;
+                contractSelect.appendChild(option);
+            });
+            
+            // Restaurer les valeurs si elles existent encore
+            if (locations.includes(currentLocation)) {
+                locationSelect.value = currentLocation;
+            }
+            if (contracts.includes(currentContract)) {
+                contractSelect.value = currentContract;
+            }
+        }
+
+        // Afficher les jobs
+        function displayJobs() {
+            const container = document.getElementById('jobsContainer');
+            
+            if (filteredJobs.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <h3>😔 Aucune offre trouvée</h3>
+                        <p>Essayez de modifier vos critères de recherche</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredJobs.map(job => `
+                <div class="job-card" onclick="window.open('${job.lien}', '_blank')">
+                    <div class="job-header">
+                        <h3 class="job-title">${job.titre}</h3>
+                        <div class="job-employer">${job.employeur}</div>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <div class="meta-item">
+                            <span>📍</span>
+                            <span>${job.lieu || 'Non précisé'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>📋</span>
+                            <span>${job.type_contrat || 'Non précisé'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>🎯</span>
+                            <span>${job.niveau || 'Non précisé'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>🆔</span>
+                            <span>${job.reference || 'Non précisé'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="job-tags">
+                        <span class="tag tag-contract">${job.type_contrat || 'Non précisé'}</span>
+                        ${job.niveau !== 'NA' ? `<span class="tag tag-level">${job.niveau}</span>` : ''}
+                        ${job.salaire !== 'NA' ? `<span class="tag tag-salary">${job.salaire}</span>` : ''}
+                    </div>
+                    
+                    <div class="job-footer">
+                        <div class="job-dates">
+                            <div>${job.date_publication || 'Date inconnue'}</div>
+                            ${job.date_limite !== 'NA' ? `<div style="margin-top: 2px;">${job.date_limite}</div>` : ''}
+                        </div>
+                        <a href="${job.lien}" target="_blank" class="btn-view" onclick="event.stopPropagation()">
+                            Voir l'offre
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats() {
+            document.getElementById('resultsCount').textContent = 
+                `${filteredJobs.length} offre${filteredJobs.length > 1 ? 's' : ''} trouvée${filteredJobs.length > 1 ? 's' : ''}`;
+            
+            document.getElementById('lastUpdate').textContent = 
+                `Dernière mise à jour: ${new Date().toLocaleDateString('fr-FR')}`;
+        }
+
+        // Filtrer les jobs
+        function filterJobs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const locationFilter = document.getElementById('locationFilter').value;
+            const contractFilter = document.getElementById('contractFilter').value;
+            const salaryFilter = document.getElementById('salaryFilter').value;
+            
+            filteredJobs = allJobs.filter(job => {
+                const matchesSearch = !searchTerm || 
+                    job.titre.toLowerCase().includes(searchTerm) || 
+                    job.employeur.toLowerCase().includes(searchTerm);
+                
+                const matchesLocation = !locationFilter || job.lieu === locationFilter;
+                const matchesContract = !contractFilter || job.type_contrat === contractFilter;
+                
+                let matchesSalary = true;
+                if (salaryFilter === 'with-salary') {
+                    matchesSalary = job.salaire !== 'NA';
+                } else if (salaryFilter === 'no-salary') {
+                    matchesSalary = job.salaire === 'NA';
+                }
+                
+                return matchesSearch && matchesLocation && matchesContract && matchesSalary;
+            });
+            
+            displayJobs();
+            updateStats();
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterJobs);
+        document.getElementById('locationFilter').addEventListener('change', filterJobs);
+        document.getElementById('contractFilter').addEventListener('change', filterJobs);
+        document.getElementById('salaryFilter').addEventListener('change', filterJobs);
+
+        // Fonction pour actualiser les jobs
+        async function refreshJobs() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Actualisation...';
+            
+            try {
+                const response = await fetch('/refresh');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Recharger les jobs après actualisation
+                    await loadJobs();
+                    btn.innerHTML = '✅ Actualisé !';
+                    setTimeout(() => {
+                        btn.innerHTML = '🔄 Actualiser';
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    btn.innerHTML = '❌ Erreur';
+                    console.error('Erreur:', result.error);
+                    setTimeout(() => {
+                        btn.innerHTML = '🔄 Actualiser';
+                        btn.disabled = false;
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                btn.innerHTML = '❌ Erreur';
+                setTimeout(() => {
+                    btn.innerHTML = '🔄 Actualiser';
+                    btn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        // Charger au démarrage
+        loadJobs();
+    </script>
+</body>
+</html>
