@@ -22,7 +22,7 @@ Ce projet est actuellement en **phase Alpha**. Seules les offres de **l'Assuranc
 1.  **Clonez le dépôt :**
     ```bash
     git clone https://github.com/AverageCoder69/Le_travail.git
-    cd le-travail
+    cd Le_Travail
     ```
 
 2.  **(Recommandé) Créez et activez un environnement virtuel :**
