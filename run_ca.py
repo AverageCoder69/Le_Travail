@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Crédit Agricole Jobs - Alpha 0.0.1
+Crédit Agricole Jobs - Alpha 0.1.0
 Script de démarrage principal
 
 Pour lancer l'application:
@@ -72,7 +72,7 @@ def initial_scrape():
 
 def main():
     """Fonction principale"""
-    print("🏦 Crédit Agricole Jobs - Alpha 0.0.1")
+    print("🏦 Crédit Agricole Jobs - Alpha 0.1.0")
     print("=" * 50)
     
     # Vérifier les dépendances

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Le Travail - Alpha 0.0.1
+Le Travail - Alpha 0.1.0
 Script de démarrage principal
 
 Pour lancer l'application:
@@ -70,7 +70,7 @@ def initial_scrape():
 
 def main():
     """Fonction principale"""
-    print("🚀 Le Travail - Alpha 0.0.1")
+    print("🚀 Le Travail - Alpha 0.1.0")
     print("=" * 40)
     
     # Vérifier les dépendances

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Le Travail - Alpha 0.0.1
+Le Travail - Alpha 0.1.0
 Interface unifiée Sécurité Sociale + Crédit Agricole
 
 Pour lancer l'application:
@@ -75,7 +75,7 @@ def initial_scrape():
 
 def main():
     """Fonction principale"""
-    print("💼 Le Travail - Interface Unifiée - Alpha 0.0.1")
+    print("💼 Le Travail - Interface Unifiée - Alpha 0.1.0")
     print("=" * 60)
     print("🏛️  Sécurité Sociale + 🏦 Crédit Agricole")
     print("=" * 60)
