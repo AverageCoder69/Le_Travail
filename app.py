@@ -1,6 +1,8 @@
 from flask import Flask, render_template, jsonify, send_from_directory
 import json
 import os
+import sys
+import subprocess
 
 app = Flask(__name__)
 
@@ -30,10 +32,13 @@ def get_jobs():
 def refresh_jobs():
     """Endpoint pour relancer le scraping et mettre à jour les jobs"""
     try:
-        import subprocess
+        # Utiliser l'interpréteur Python actuel
+        python_path = sys.executable
+        script_path = os.path.join(os.path.dirname(__file__), 'scrapper.py')
+        
         result = subprocess.run([
-            '/Volumes/JeremyExternal/jeremyext/Documents/ven/bin/python', 
-            'scrapper.py'
+            python_path, 
+            script_path
         ], capture_output=True, text=True, timeout=120)  # 2 minutes timeout
         
         if result.returncode == 0:
@@ -75,7 +80,7 @@ def get_stats():
         return jsonify({"error": "Fichier jobs.json non trouvé"}), 404
 
 if __name__ == '__main__':
-    print("🚀 Serveur Jobs Sécurité Sociale")
+    print("🚀 Serveur Le Travail")
     print("📍 URL: http://localhost:5001")
     print("🔄 Actualiser les jobs: http://localhost:5001/refresh")
     print("📊 Statistiques: http://localhost:5001/stats")

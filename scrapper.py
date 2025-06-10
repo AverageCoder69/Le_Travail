@@ -1,6 +1,7 @@
 import subprocess
 import json
 import re
+import os
 from bs4 import BeautifulSoup
 
 def scrape_jobs():
@@ -117,8 +118,11 @@ if __name__ == "__main__":
     jobs = scrape_jobs()
     
     if jobs:
-        # Sauvegarder en JSON
-        with open('/Volumes/JeremyExternal/jeremyext/Documents/Le_Travail/jobs.json', 'w', encoding='utf-8') as f:
+        # Sauvegarder en JSON dans le même répertoire que le script
+        script_dir = os.path.dirname(__file__)
+        jobs_file = os.path.join(script_dir, 'jobs.json')
+        
+        with open(jobs_file, 'w', encoding='utf-8') as f:
             json.dump(jobs, f, ensure_ascii=False, indent=2)
         
         print(f"Trouvé {len(jobs)} offres d'emploi sauvegardées dans jobs.json")
