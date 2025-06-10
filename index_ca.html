@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💼 Crédit Agricole Jobs - Alpha 0.0.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00693E 0%, #004D2C 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #00693E, #004D2C);
+            color: white;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header > div:first-child {
+            text-align: left;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        select, input {
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #00693E;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(45deg, #f8fafc, #f1f5f9);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #00693E;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #00693E;
+            margin-bottom: 0.5rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .job-card {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid #00693E;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a365d;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .job-company {
+            color: #00693E;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .job-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .job-detail {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .job-detail strong {
+            color: #2d3748;
+            margin-right: 0.5rem;
+            min-width: fit-content;
+        }
+
+        .job-detail span {
+            color: #4a5568;
+            word-break: break-word;
+        }
+
+        .job-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(45deg, #00693E, #004D2C);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .job-link:hover {
+            background: linear-gradient(45deg, #004D2C, #00332A);
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #00693E, #004D2C);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: linear-gradient(45deg, #004D2C, #00332A);
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1>💼 Crédit Agricole Jobs</h1>
+                <p>Interface de recherche d'emploi - Alpha 0.0.1</p>
+            </div>
+            <div class="nav-links">
+                <a href="/carte" class="nav-link">🗺️ Carte</a>
+                <a href="/stats" class="nav-link">📊 Stats</a>
+                <button class="refresh-btn" onclick="refreshJobs()">🔄 Actualiser</button>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="cityFilter">Ville :</label>
+                    <select id="cityFilter">
+                        <option value="">Toutes les villes</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="contractFilter">Contrat :</label>
+                    <select id="contractFilter">
+                        <option value="">Tous les contrats</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="sectorFilter">Secteur :</label>
+                    <select id="sectorFilter">
+                        <option value="">Tous les secteurs</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="searchInput">Recherche :</label>
+                    <input type="text" id="searchInput" placeholder="Titre, lieu, secteur...">
+                </div>
+            </div>
+
+            <div id="message"></div>
+
+            <div class="stats" id="stats">
+                <div class="stat-card">
+                    <h3 id="totalJobs">-</h3>
+                    <p>Offres disponibles</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalLocations">-</h3>
+                    <p>Villes</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalSectors">-</h3>
+                    <p>Secteurs</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="withDate">-</h3>
+                    <p>Avec date</p>
+                </div>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                🔄 Chargement des offres...
+            </div>
+
+            <div class="jobs-grid" id="jobsContainer">
+                <!-- Les jobs seront ajoutés ici par JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allJobs = [];
+
+        async function loadJobs() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch('/jobs');
+                if (!response.ok) throw new Error('Erreur réseau');
+                
+                allJobs = await response.json();
+                updateStats();
+                populateFilters();
+                displayJobs(allJobs);
+                
+                document.getElementById('loading').style.display = 'none';
+                showMessage('✅ Offres chargées avec succès!', 'success');
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showMessage('❌ Erreur lors du chargement: ' + error.message, 'error');
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalJobs').textContent = allJobs.length;
+            
+            const uniqueLocations = new Set(allJobs.map(job => job.lieu).filter(l => l !== 'NA'));
+            document.getElementById('totalLocations').textContent = uniqueLocations.size;
+            
+            const uniqueSectors = new Set(allJobs.map(job => job.secteur).filter(s => s !== 'NA'));
+            document.getElementById('totalSectors').textContent = uniqueSectors.size;
+            
+            const withDate = allJobs.filter(job => job.date_publication !== 'NA').length;
+            document.getElementById('withDate').textContent = withDate;
+        }
+
+        function populateFilters() {
+            // Réinitialiser les filtres
+            const cityFilter = document.getElementById('cityFilter');
+            const contractFilter = document.getElementById('contractFilter');
+            const sectorFilter = document.getElementById('sectorFilter');
+            
+            // Vider les options existantes (garder la première)
+            cityFilter.innerHTML = '<option value="">Toutes les villes</option>';
+            contractFilter.innerHTML = '<option value="">Tous les contrats</option>';
+            sectorFilter.innerHTML = '<option value="">Tous les secteurs</option>';
+            
+            // Extraire les valeurs uniques
+            const cities = [...new Set(allJobs.map(job => job.lieu).filter(l => l !== 'NA'))].sort();
+            const contracts = [...new Set(allJobs.map(job => job.type_contrat).filter(c => c !== 'NA'))].sort();
+            const sectors = [...new Set(allJobs.map(job => job.secteur).filter(s => s !== 'NA'))].sort();
+            
+            // Ajouter les options
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                cityFilter.appendChild(option);
+            });
+            
+            contracts.forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract;
+                option.textContent = contract;
+                contractFilter.appendChild(option);
+            });
+            
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                sectorFilter.appendChild(option);
+            });
+        }
+
+        function displayJobs(jobs) {
+            const container = document.getElementById('jobsContainer');
+            
+            if (jobs.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Aucune offre trouvée.</p>';
+                return;
+            }
+            
+            container.innerHTML = jobs.map(job => `
+                <div class="job-card">
+                    <h3 class="job-title">${job.titre || 'Titre non disponible'}</h3>
+                    <div class="job-company">${job.employeur || 'Crédit Agricole'}</div>
+                    
+                    <div class="job-details">
+                        <div class="job-detail">
+                            <strong>📍</strong>
+                            <span>${job.lieu || 'Non précisé'}</span>
+                        </div>
+                        <div class="job-detail">
+                            <strong>📋</strong>
+                            <span>${job.type_contrat || 'Non précisé'}</span>
+                        </div>
+                        <div class="job-detail">
+                            <strong>🏢</strong>
+                            <span>${job.secteur || 'Non précisé'}</span>
+                        </div>
+                        <div class="job-detail">
+                            <strong>📅</strong>
+                            <span>${job.date_publication || 'Non précisé'}</span>
+                        </div>
+                        ${job.niveau !== 'NA' ? `
+                        <div class="job-detail">
+                            <strong>🎓</strong>
+                            <span>${job.niveau}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${job.lien ? `<a href="${job.lien}" target="_blank" class="job-link">Voir l'offre →</a>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function filterJobs() {
+            const cityFilter = document.getElementById('cityFilter').value;
+            const contractFilter = document.getElementById('contractFilter').value;
+            const sectorFilter = document.getElementById('sectorFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filteredJobs = allJobs.filter(job => {
+                const matchCity = !cityFilter || job.lieu === cityFilter;
+                const matchContract = !contractFilter || job.type_contrat === contractFilter;
+                const matchSector = !sectorFilter || job.secteur === sectorFilter;
+                const matchSearch = !searchTerm || 
+                    job.titre?.toLowerCase().includes(searchTerm) ||
+                    job.lieu?.toLowerCase().includes(searchTerm) ||
+                    job.secteur?.toLowerCase().includes(searchTerm) ||
+                    job.type_contrat?.toLowerCase().includes(searchTerm);
+                
+                return matchCity && matchContract && matchSector && matchSearch;
+            });
+            
+            displayJobs(filteredJobs);
+        }
+
+        async function refreshJobs() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.disabled = true;
+            btn.textContent = '🔄 Actualisation...';
+            
+            try {
+                const response = await fetch('/refresh');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ Données actualisées!', 'success');
+                    await loadJobs();
+                } else {
+                    showMessage('❌ Erreur: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Erreur réseau: ' + error.message, 'error');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '🔄 Actualiser';
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Event listeners
+        document.getElementById('cityFilter').addEventListener('change', filterJobs);
+        document.getElementById('contractFilter').addEventListener('change', filterJobs);
+        document.getElementById('sectorFilter').addEventListener('change', filterJobs);
+        document.getElementById('searchInput').addEventListener('input', filterJobs);
+
+        // Charger les données au démarrage
+        loadJobs();
+    </script>
+</body>
+</html>

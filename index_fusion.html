@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💼 Le Travail Alpha 0.0.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header > div:first-child {
+            text-align: left;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        select, input {
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(45deg, #f8fafc, #f1f5f9);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .job-card {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid #3b82f6;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .job-source {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .job-source.secu {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .job-source.ca {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a365d;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+            margin-right: 4rem;
+        }
+
+        .job-company {
+            color: #3b82f6;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .job-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .job-detail {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .job-detail strong {
+            color: #2d3748;
+            margin-right: 0.5rem;
+            min-width: fit-content;
+        }
+
+        .job-detail span {
+            color: #4a5568;
+            word-break: break-word;
+        }
+
+        .job-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(45deg, #3b82f6, #1e40af);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .job-link:hover {
+            background: linear-gradient(45deg, #1e40af, #1e3a8a);
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #3b82f6, #1e40af);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: linear-gradient(45deg, #1e40af, #1e3a8a);
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .source-filter {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .source-filter label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .source-filter input[type="checkbox"] {
+            width: auto;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .job-title {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            .job-source {
+                position: static;
+                display: inline-block;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1>💼 Le Travail</h1>
+                <p>Interface de recherche d'emploi unifiée - Alpha 0.0.1</p>
+            </div>
+            <div class="nav-links">
+                <a href="/carte" class="nav-link">🗺️ Carte</a>
+                <a href="/stats" class="nav-link">📊 Stats</a>
+                <button class="refresh-btn" onclick="refreshJobs()">🔄 Actualiser</button>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="cityFilter">Ville :</label>
+                    <select id="cityFilter">
+                        <option value="">Toutes les villes</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="contractFilter">Contrat :</label>
+                    <select id="contractFilter">
+                        <option value="">Tous les contrats</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="sectorFilter">Secteur :</label>
+                    <select id="sectorFilter">
+                        <option value="">Tous les secteurs</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="employerFilter">Employeur :</label>
+                    <select id="employerFilter">
+                        <option value="">Tous les employeurs</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="searchInput">Recherche :</label>
+                    <input type="text" id="searchInput" placeholder="Titre, lieu, secteur...">
+                </div>
+                <div class="control-group">
+                    <label>Sources :</label>
+                    <div class="source-filter">
+                        <label>
+                            <input type="checkbox" id="sourceSecu" checked>
+                            Sécurité Sociale
+                        </label>
+                        <label>
+                            <input type="checkbox" id="sourceCA" checked>
+                            Crédit Agricole
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="message"></div>
+
+            <div class="stats" id="stats">
+                <div class="stat-card">
+                    <h3 id="totalJobs">-</h3>
+                    <p id="totalJobsLabel">Offres disponibles</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalLocations">-</h3>
+                    <p>Villes</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalEmployers">-</h3>
+                    <p>Employeurs</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="withSalary">-</h3>
+                    <p>Avec salaire</p>
+                </div>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                🔄 Chargement des offres...
+            </div>
+
+            <div class="jobs-grid" id="jobsContainer">
+                <!-- Les jobs seront ajoutés ici par JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allJobs = [];
+
+        async function loadJobs() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch('/jobs');
+                if (!response.ok) throw new Error('Erreur réseau');
+                
+                allJobs = await response.json();
+                updateStats();
+                populateFilters();
+                displayJobs(allJobs);
+                
+                document.getElementById('loading').style.display = 'none';
+                showMessage('✅ Offres chargées avec succès!', 'success');
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showMessage('❌ Erreur lors du chargement: ' + error.message, 'error');
+            }
+        }
+
+        function updateStats(jobsToCount = null) {
+            // Utiliser les jobs filtrés si fournis, sinon tous les jobs
+            const jobs = jobsToCount || allJobs;
+            
+            document.getElementById('totalJobs').textContent = jobs.length;
+            
+            // Mettre à jour le label selon les sources affichées
+            const sourceSecu = document.getElementById('sourceSecu').checked;
+            const sourceCA = document.getElementById('sourceCA').checked;
+            
+            let label = "Offres disponibles";
+            if (sourceSecu && !sourceCA) {
+                label = "Offres Sécurité Sociale";
+            } else if (sourceCA && !sourceSecu) {
+                label = "Offres Crédit Agricole";
+            } else if (sourceSecu && sourceCA) {
+                label = "Offres disponibles (toutes sources)";
+            }
+            document.getElementById('totalJobsLabel').textContent = label;
+            
+            const uniqueLocations = new Set(jobs.map(job => job.lieu).filter(l => l !== 'NA'));
+            document.getElementById('totalLocations').textContent = uniqueLocations.size;
+            
+            const uniqueEmployers = new Set(jobs.map(job => job.employeur).filter(e => e !== 'NA'));
+            document.getElementById('totalEmployers').textContent = uniqueEmployers.size;
+            
+            const withSalary = jobs.filter(job => job.salaire !== 'NA').length;
+            document.getElementById('withSalary').textContent = withSalary;
+        }
+
+        function isForeignCity(city) {
+            const cityLower = city.toLowerCase();
+            const foreignCountries = [
+                'allemagne', 'espagne', 'italie', 'suisse', 'belgique', 'luxembourg', 
+                'portugal', 'angleterre', 'royaume-uni', 'irlande', 'pays-bas', 'autriche',
+                'usa', 'états-unis', 'etats-unis', 'canada', 'brésil', 'inde', 'chine', 
+                'japon', 'singapour', 'hong kong', 'dubai', 'maroc', 'tunisie', 'australie',
+                'corée', 'emirats arabes unis', 'malaisie', 'monaco'
+            ];
+            
+            return foreignCountries.some(country => cityLower.includes(country)) || 
+                   cityLower.includes(' - ') && !cityLower.includes('france');
+        }
+
+        function populateFilters() {
+            // Filtrer les jobs selon les sources sélectionnées
+            const sourceSecu = document.getElementById('sourceSecu').checked;
+            const sourceCA = document.getElementById('sourceCA').checked;
+            
+            const jobsToFilter = allJobs.filter(job => {
+                return (sourceSecu && job.source === 'Sécurité Sociale') ||
+                       (sourceCA && job.source === 'Crédit Agricole');
+            });
+            
+            // Réinitialiser les filtres
+            const cityFilter = document.getElementById('cityFilter');
+            const contractFilter = document.getElementById('contractFilter');
+            const sectorFilter = document.getElementById('sectorFilter');
+            const employerFilter = document.getElementById('employerFilter');
+            
+            // Sauvegarder les valeurs actuelles
+            const currentCity = cityFilter.value;
+            const currentContract = contractFilter.value;
+            const currentSector = sectorFilter.value;
+            const currentEmployer = employerFilter.value;
+            
+            // Vider les options existantes (garder la première)
+            cityFilter.innerHTML = '<option value="">Toutes les villes</option>';
+            contractFilter.innerHTML = '<option value="">Tous les contrats</option>';
+            sectorFilter.innerHTML = '<option value="">Tous les secteurs</option>';
+            employerFilter.innerHTML = '<option value="">Tous les employeurs</option>';
+            
+            // Extraire et séparer les villes
+            const allCities = [...new Set(jobsToFilter.map(job => job.lieu).filter(l => l !== 'NA'))];
+            const frenchCities = allCities.filter(city => !isForeignCity(city)).sort();
+            const foreignCities = allCities.filter(city => isForeignCity(city)).sort();
+            
+            const contracts = [...new Set(jobsToFilter.map(job => job.type_contrat).filter(c => c !== 'NA'))].sort();
+            const sectors = [...new Set(jobsToFilter.map(job => job.secteur).filter(s => s !== 'NA'))].sort();
+            const employers = [...new Set(jobsToFilter.map(job => job.employeur).filter(e => e !== 'NA'))].sort();
+            
+            // Ajouter les villes françaises
+            if (frenchCities.length > 0) {
+                const frenchGroup = document.createElement('optgroup');
+                frenchGroup.label = '🇫🇷 France';
+                frenchCities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    if (city === currentCity) option.selected = true;
+                    frenchGroup.appendChild(option);
+                });
+                cityFilter.appendChild(frenchGroup);
+            }
+            
+            // Ajouter les villes étrangères
+            if (foreignCities.length > 0) {
+                const foreignGroup = document.createElement('optgroup');
+                foreignGroup.label = '🌍 International';
+                foreignCities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    if (city === currentCity) option.selected = true;
+                    foreignGroup.appendChild(option);
+                });
+                cityFilter.appendChild(foreignGroup);
+            }
+            
+            // Ajouter les autres filtres normalement
+            contracts.forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract;
+                option.textContent = contract;
+                if (contract === currentContract) option.selected = true;
+                contractFilter.appendChild(option);
+            });
+            
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                if (sector === currentSector) option.selected = true;
+                sectorFilter.appendChild(option);
+            });
+            
+            employers.forEach(employer => {
+                const option = document.createElement('option');
+                option.value = employer;
+                option.textContent = employer;
+                if (employer === currentEmployer) option.selected = true;
+                employerFilter.appendChild(option);
+            });
+        }
+
+        function getSourceClass(source) {
+            if (source === 'Sécurité Sociale') return 'secu';
+            if (source === 'Crédit Agricole') return 'ca';
+            return 'other';
+        }
+
+        function getSourceLabel(source) {
+            if (source === 'Sécurité Sociale') return 'Sécu';
+            if (source === 'Crédit Agricole') return 'CA';
+            return source;
+        }
+
+        function displayJobs(jobs) {
+            const container = document.getElementById('jobsContainer');
+            
+            if (jobs.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Aucune offre trouvée.</p>';
+                return;
+            }
+            
+            container.innerHTML = jobs.map(job => `
+                <div class="job-card">
+                    <div class="job-source ${getSourceClass(job.source)}">${getSourceLabel(job.source)}</div>
+                    
+                    <h3 class="job-title">${job.titre || 'Titre non disponible'}</h3>
+                    <div class="job-company">${job.employeur || 'Employeur non précisé'}</div>
+                    
+                    <div class="job-details">
+                        <div class="job-detail">
+                            <strong>📍</strong>
+                            <span>${job.lieu || 'Non précisé'}</span>
+                        </div>
+                        <div class="job-detail">
+                            <strong>📋</strong>
+                            <span>${job.type_contrat || 'Non précisé'}</span>
+                        </div>
+                        <div class="job-detail">
+                            <strong>🏢</strong>
+                            <span>${job.secteur || 'Non précisé'}</span>
+                        </div>
+                        <div class="job-detail">
+                            <strong>📅</strong>
+                            <span>${job.date_publication || 'Non précisé'}</span>
+                        </div>
+                        ${job.salaire !== 'NA' ? `
+                        <div class="job-detail">
+                            <strong>💰</strong>
+                            <span>${job.salaire}</span>
+                        </div>
+                        ` : ''}
+                        ${job.niveau !== 'NA' ? `
+                        <div class="job-detail">
+                            <strong>🎓</strong>
+                            <span>${job.niveau}</span>
+                        </div>
+                        ` : ''}
+                        ${job.reference !== 'NA' ? `
+                        <div class="job-detail">
+                            <strong>🔖</strong>
+                            <span>${job.reference}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${job.lien ? `<a href="${job.lien}" target="_blank" class="job-link">Voir l'offre →</a>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function filterJobs() {
+            const cityFilter = document.getElementById('cityFilter').value;
+            const contractFilter = document.getElementById('contractFilter').value;
+            const sectorFilter = document.getElementById('sectorFilter').value;
+            const employerFilter = document.getElementById('employerFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const sourceSecu = document.getElementById('sourceSecu').checked;
+            const sourceCA = document.getElementById('sourceCA').checked;
+            
+            const filteredJobs = allJobs.filter(job => {
+                const matchCity = !cityFilter || job.lieu === cityFilter;
+                const matchContract = !contractFilter || job.type_contrat === contractFilter;
+                const matchSector = !sectorFilter || job.secteur === sectorFilter;
+                const matchEmployer = !employerFilter || job.employeur === employerFilter;
+                const matchSearch = !searchTerm || 
+                    job.titre?.toLowerCase().includes(searchTerm) ||
+                    job.lieu?.toLowerCase().includes(searchTerm) ||
+                    job.secteur?.toLowerCase().includes(searchTerm) ||
+                    job.employeur?.toLowerCase().includes(searchTerm) ||
+                    job.type_contrat?.toLowerCase().includes(searchTerm);
+                
+                const matchSource = (sourceSecu && job.source === 'Sécurité Sociale') ||
+                                  (sourceCA && job.source === 'Crédit Agricole');
+                
+                return matchCity && matchContract && matchSector && matchEmployer && matchSearch && matchSource;
+            });
+            
+            // Mettre à jour les statistiques avec les jobs filtrés
+            updateStats(filteredJobs);
+            displayJobs(filteredJobs);
+        }
+
+        async function refreshJobs() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.disabled = true;
+            btn.textContent = '🔄 Actualisation...';
+            
+            showMessage('⏰ Actualisation en cours... Cela peut prendre plusieurs minutes.', 'success');
+            
+            try {
+                const response = await fetch('/refresh');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ Données actualisées!', 'success');
+                    await loadJobs();
+                } else {
+                    showMessage('❌ Erreur: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Erreur réseau: ' + error.message, 'error');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '🔄 Actualiser';
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Fonction pour gérer les changements de source
+        function handleSourceChange() {
+            populateFilters(); // Reconstruire les filtres avec les nouvelles sources
+            filterJobs(); // Appliquer le filtrage
+        }
+
+        // Event listeners
+        document.getElementById('cityFilter').addEventListener('change', filterJobs);
+        document.getElementById('contractFilter').addEventListener('change', filterJobs);
+        document.getElementById('sectorFilter').addEventListener('change', filterJobs);
+        document.getElementById('employerFilter').addEventListener('change', filterJobs);
+        document.getElementById('searchInput').addEventListener('input', filterJobs);
+        document.getElementById('sourceSecu').addEventListener('change', handleSourceChange);
+        document.getElementById('sourceCA').addEventListener('change', handleSourceChange);
+
+        // Charger les données au démarrage
+        loadJobs();
+    </script>
+</body>
+</html>
